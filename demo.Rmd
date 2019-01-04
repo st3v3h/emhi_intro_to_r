@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+Loading and inspecting the data and getting packages
+
+```{r get_data}
+
+library(foreign)
+library(summarytools)
+library(tidyverse)
+
+data<-read.spss("Data+for+assignments.sav", to.data.frame = T, add.undeclared.levels = "no")
+
+str(data)
+
+head(data)
+
+```
+
+Describe the data
+
+```{r describe, results='asis'}
+
+summary(data) #base summary
+
+#load summary tools
+descr(data) #describes only numeric fields
+
+freq(data) #gives an error -- need to apply to each column seperately 
+
+#apply freq to all columns
+apply(data, 2, freq) #but also applies to numeric columns
+
+#load tidyverse
+#subset the data with just the factors
+data_fac <- data %>% select_if(is.factor)
+
+#now run the apply
+apply(data_fac, 2, freq)
+
+
+
+```
+
+Plotting
+
+```{r plotting}
+
+#hitsograms
+hist(data$confid)
+hist(data$life)
+
+#single plot
+plot(data_fac$gender, main = "gender")
+
+#plot all factors
+for (i in colnames(data_fac)){
+  plot(data_fac[i], main = i)
+}
+
+#different approach
+lapply(data_fac, function(x) plot(x))
+
+#single ggplot
+data %>% 
+  ggplot(aes(x=gender)) +
+  geom_bar()
+
+
+#drop blanks
+data %>% 
+  drop_na(gender) %>% 
+  ggplot(aes(x=gender)) +
+  geom_bar()
+
+
+#more advanced plots
+data %>%
+  drop_na(gender, satcurwt) %>% 
+    ggplot(aes(x=gender, y=satcurwt)) +
+      geom_boxplot() +
+      xlab("Gender") +
+      ylab("Satisfaction Current Weight")
+
+```
+
